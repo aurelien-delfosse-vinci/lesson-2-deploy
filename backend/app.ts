@@ -12,7 +12,7 @@ app.use(
 );
 app.use(logger('dev'));
 app.use(express.json());
-app.use(cors({ origin: [/localhost/, /\.onrender\.com$/] }));
+
 
 app.get('/ping', (req, res) => {
   res.sendStatus(204);
