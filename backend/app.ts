@@ -5,9 +5,6 @@ import expensesRouter from './routes/expenses.router.ts';
 
 const app = express();
 
-app.get('/test', (req, res) => {
-  res.send('TEST OK');
-});
 
 app.use(
   cors({
