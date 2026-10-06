@@ -6,8 +6,6 @@ import useExpenses from "../hooks/useExpenses";
 import ExpenseReset from "../components/ExpenseReset";
 import ExpenseSorter from "../components/ExpenseSorter";
 
-const host = import.meta.env.VITE_API_URL || 'http://unknown-api-url.com';
-
 function Home() {
   const { expenses, addExpense, resetExpenses } = useExpenses();
   const [sortingAlgo, setSortingAlgo] = useState<(a: Expense, b: Expense) => number>(() => () => 1);
