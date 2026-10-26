@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "node --watch app.ts",
+    "build": "npm install &&  npx prisma db update",
     "start": "node app.ts",
     "typecheck": "tsc --noEmit",
     "contract:emit": "prisma contract emit"

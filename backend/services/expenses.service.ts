@@ -1,24 +1,27 @@
 import fs from "fs";
 import type { Expense, NewExpense } from "../types/expense.ts";
+import { db } from "../src/prisma/db.ts";
 
 export class ExpensesService {
 
   private static dataPath = "./data/expenses.json";
   private static resetPath = "./data/expenses.init.json";
   
-  public static getExpenses(): Expense[] {
-    return this.readExpenses();
-  }
+  public static async getExpenses(): Promise<Expense[]> {
+  const expenses = await db.orm.public.Expense.all();
+
+  return expenses.map((expense) => ({
+    ...expense,
+    id: expense.id.toString()
+  }));
+}
   
-  public static addExpense(newExpense: NewExpense): Expense[] {
-    const expenses = this.readExpenses();
-    const expense: Expense = {
-      ...newExpense,
-      id: (expenses.length + 1).toString()
-    };
-    expenses.push(expense);
-    this.saveExpenses(expenses);
-    return expenses;
+  public static async addExpense(newExpense: NewExpense): Promise<Expense[]> {
+    await db.orm.public.Expense.create({
+      ...newExpense
+    });
+
+    return await this.getExpenses();
   }
   
   public static resetExpenses(): Expense[] {
