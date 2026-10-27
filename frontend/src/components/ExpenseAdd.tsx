@@ -6,7 +6,7 @@ interface ExpenseAddProps {
   addExpense: (expense: Expense) => void;
 }
 
-function ExpenseAdd({ addExpense }: ExpenseAddProps) {
+function ExpenseAdd() {
   const [payer, setPayer] = useState("Bob");
   const [date, setDate] = useState("2026-09-18");
   const [description, setDescription] = useState("");
