@@ -29,6 +29,8 @@ function useExpenses(): UseExpensesResult {
         throw new Error(`Failed to fetch expenses (${response.status})`);
       }
       const data = (await response.json()) as Expense[];
+      console.log('Réponse API :', data);
+      console.log('Est un tableau ?', Array.isArray(data));
       setExpenses(data);
     } catch (err) {
       setError(errorMessage(err));
