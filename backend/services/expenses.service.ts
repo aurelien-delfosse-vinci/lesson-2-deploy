@@ -24,9 +24,26 @@ export class ExpensesService {
     return await this.getExpenses();
   }
   
-  public static resetExpenses(): Expense[] {
-    this._resetExpenses();
-    return this.readExpenses();
+  public static async resetExpenses(): Promise<Expense[]> {
+    const defaultExpenses: NewExpense[] = JSON.parse(
+    fs.readFileSync(this.resetPath, "utf-8")
+  );
+
+  // Supprime toutes les dépenses de la base de données.
+  await db.orm.public.Expense.where(({id}) => id.gt(0)).deleteAll();
+
+  // Réinsère les dépenses initiales.
+  for (const expense of defaultExpenses) {
+    await db.orm.public.Expense.create({
+      date: expense.date,
+      description: expense.description,
+      payer: expense.payer,
+      amount: expense.amount,
+    });
+  }
+
+  // Renvoie la liste mise à jour.
+  return await this.getExpenses();
   }
   
   private static readExpenses(): Expense[] {
@@ -48,14 +65,4 @@ export class ExpensesService {
     }
   }
 
-  private static _resetExpenses(): void {
-    try {
-      const defaultExpenses: Expense[] = JSON.parse(fs.readFileSync(this.resetPath, "utf-8"));
-      fs.writeFileSync(this.dataPath, JSON.stringify(defaultExpenses, null, 2));
-    } catch (error) {
-      console.error("Error resetting expenses file:", error);
-      throw error;
-    }
-  }
-  
 }
