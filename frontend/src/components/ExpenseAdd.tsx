@@ -2,17 +2,17 @@
 import { useState } from "react";
 import type { Expense } from "../types/Expense";
 
-//interface ExpenseAddProps {
-//  addExpense: (expense: Expense) => void;
-//}
+interface ExpenseAddProps {
+  addExpense: (expense: Expense) => void;
+}
 
-function ExpenseAdd() {
+function ExpenseAdd({ addExpense }: ExpenseAddProps) {
   const [payer, setPayer] = useState("Bob");
   const [date, setDate] = useState("2026-09-18");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const expense: Expense = {
@@ -23,7 +23,10 @@ function ExpenseAdd() {
       amount: Number(amount),
     };
 
-    console.log(expense);
+    await addExpense(expense);
+
+    setDescription("");
+    setAmount("");
   }
 
   return (
