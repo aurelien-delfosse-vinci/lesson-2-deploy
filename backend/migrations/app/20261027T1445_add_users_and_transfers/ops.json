@@ -1,0 +1,715 @@
+[
+  {
+    "id": "dropColumn.Expense.payer",
+    "label": "Drop column \"payer\" from \"Expense\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "payer",
+        "table": "Expense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"payer\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Expense",
+          "payer"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"payer\"",
+        "sql": "ALTER TABLE \"public\".\"Expense\" DROP COLUMN \"payer\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"payer\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Expense",
+          "payer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.Participations",
+    "label": "Create table \"Participations\"",
+    "summary": "Creates table \"Participations\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Participations"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Participations\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Participations\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Participations\"",
+        "sql": "CREATE TABLE \"public\".\"Participations\" (\n  \"expenseId\" int4 NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"expenseId\", \"userId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Participations\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Participations\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.Transfer",
+    "label": "Create table \"Transfer\"",
+    "summary": "Creates table \"Transfer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Transfer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Transfer\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Transfer\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Transfer\"",
+        "sql": "CREATE TABLE \"public\".\"Transfer\" (\n  \"amount\" float8 NOT NULL,\n  \"date\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"sourceId\" int4 NOT NULL,\n  \"targetId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Transfer\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Transfer\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.User",
+    "label": "Create table \"User\"",
+    "summary": "Creates table \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"User\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"User\"",
+        "sql": "CREATE TABLE \"public\".\"User\" (\n  \"bankAccount\" text,\n  \"email\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"name\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"User\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Expense.payerId",
+    "label": "Add column \"payerId\" to \"Expense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "payerId",
+        "table": "Expense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"payerId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Expense",
+          "payerId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"payerId\"",
+        "sql": "ALTER TABLE \"public\".\"Expense\" ADD COLUMN \"payerId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"payerId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Expense",
+          "payerId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data_migration.wipe-expense-before-payer-migration",
+    "label": "Data transform: wipe-expense-before-payer-migration",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Run wipe-expense-before-payer-migration",
+        "sql": "DELETE FROM \"public\".\"Expense\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "alterNullability.setNotNull.Expense.payerId",
+    "label": "Set NOT NULL on \"Expense\".\"payerId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "payerId",
+        "table": "Expense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"payerId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Expense",
+          "payerId"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"payerId\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"Expense\" WHERE \"payerId\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"payerId\"",
+        "sql": "ALTER TABLE \"public\".\"Expense\" ALTER COLUMN \"payerId\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"payerId\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Expense",
+          "payerId",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.User.User_email_key",
+    "label": "Add unique constraint on \"User\" (email)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "User_email_key",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"User_email_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_email_key",
+          "public",
+          "\"public\".\"User\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"User_email_key\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD CONSTRAINT \"User_email_key\" UNIQUE (\"email\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"User_email_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_email_key",
+          "public",
+          "\"public\".\"User\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Expense.Expense_payerId_idx_3d3ae95d",
+    "label": "Create index \"Expense_payerId_idx_3d3ae95d\" on \"Expense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Expense_payerId_idx_3d3ae95d",
+        "table": "Expense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Expense_payerId_idx_3d3ae95d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Expense_payerId_idx_3d3ae95d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Expense_payerId_idx_3d3ae95d\"",
+        "sql": "CREATE INDEX \"Expense_payerId_idx_3d3ae95d\" ON \"public\".\"Expense\" (\"payerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Expense_payerId_idx_3d3ae95d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Expense_payerId_idx_3d3ae95d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Participations.Participations_expenseId_idx_69d413fa",
+    "label": "Create index \"Participations_expenseId_idx_69d413fa\" on \"Participations\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Participations_expenseId_idx_69d413fa",
+        "table": "Participations"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Participations_expenseId_idx_69d413fa\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Participations_expenseId_idx_69d413fa\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Participations_expenseId_idx_69d413fa\"",
+        "sql": "CREATE INDEX \"Participations_expenseId_idx_69d413fa\" ON \"public\".\"Participations\" (\"expenseId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Participations_expenseId_idx_69d413fa\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Participations_expenseId_idx_69d413fa\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Participations.Participations_userId_idx_a489d58a",
+    "label": "Create index \"Participations_userId_idx_a489d58a\" on \"Participations\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Participations_userId_idx_a489d58a",
+        "table": "Participations"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Participations_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Participations_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Participations_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"Participations_userId_idx_a489d58a\" ON \"public\".\"Participations\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Participations_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Participations_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Transfer.Transfer_sourceId_idx_d92a2571",
+    "label": "Create index \"Transfer_sourceId_idx_d92a2571\" on \"Transfer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Transfer_sourceId_idx_d92a2571",
+        "table": "Transfer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Transfer_sourceId_idx_d92a2571\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Transfer_sourceId_idx_d92a2571\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Transfer_sourceId_idx_d92a2571\"",
+        "sql": "CREATE INDEX \"Transfer_sourceId_idx_d92a2571\" ON \"public\".\"Transfer\" (\"sourceId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Transfer_sourceId_idx_d92a2571\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Transfer_sourceId_idx_d92a2571\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Transfer.Transfer_targetId_idx_9852d518",
+    "label": "Create index \"Transfer_targetId_idx_9852d518\" on \"Transfer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Transfer_targetId_idx_9852d518",
+        "table": "Transfer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Transfer_targetId_idx_9852d518\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Transfer_targetId_idx_9852d518\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Transfer_targetId_idx_9852d518\"",
+        "sql": "CREATE INDEX \"Transfer_targetId_idx_9852d518\" ON \"public\".\"Transfer\" (\"targetId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Transfer_targetId_idx_9852d518\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Transfer_targetId_idx_9852d518\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Participations.Participations_expenseId_fkey",
+    "label": "Add foreign key \"Participations_expenseId_fkey\" on \"Participations\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Participations_expenseId_fkey",
+        "table": "Participations"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Participations_expenseId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Participations_expenseId_fkey",
+          "public",
+          "\"public\".\"Participations\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Participations_expenseId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Participations\"\nADD CONSTRAINT \"Participations_expenseId_fkey\"\nFOREIGN KEY (\"expenseId\")\nREFERENCES \"public\".\"Expense\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Participations_expenseId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Participations_expenseId_fkey",
+          "public",
+          "\"public\".\"Participations\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Participations.Participations_userId_fkey",
+    "label": "Add foreign key \"Participations_userId_fkey\" on \"Participations\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Participations_userId_fkey",
+        "table": "Participations"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Participations_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Participations_userId_fkey",
+          "public",
+          "\"public\".\"Participations\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Participations_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Participations\"\nADD CONSTRAINT \"Participations_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Participations_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Participations_userId_fkey",
+          "public",
+          "\"public\".\"Participations\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Transfer.Transfer_sourceId_fkey",
+    "label": "Add foreign key \"Transfer_sourceId_fkey\" on \"Transfer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Transfer_sourceId_fkey",
+        "table": "Transfer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Transfer_sourceId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Transfer_sourceId_fkey",
+          "public",
+          "\"public\".\"Transfer\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Transfer_sourceId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Transfer\"\nADD CONSTRAINT \"Transfer_sourceId_fkey\"\nFOREIGN KEY (\"sourceId\")\nREFERENCES \"public\".\"User\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Transfer_sourceId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Transfer_sourceId_fkey",
+          "public",
+          "\"public\".\"Transfer\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Transfer.Transfer_targetId_fkey",
+    "label": "Add foreign key \"Transfer_targetId_fkey\" on \"Transfer\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Transfer_targetId_fkey",
+        "table": "Transfer"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Transfer_targetId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Transfer_targetId_fkey",
+          "public",
+          "\"public\".\"Transfer\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Transfer_targetId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Transfer\"\nADD CONSTRAINT \"Transfer_targetId_fkey\"\nFOREIGN KEY (\"targetId\")\nREFERENCES \"public\".\"User\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Transfer_targetId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Transfer_targetId_fkey",
+          "public",
+          "\"public\".\"Transfer\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Expense.Expense_payerId_fkey",
+    "label": "Add foreign key \"Expense_payerId_fkey\" on \"Expense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Expense_payerId_fkey",
+        "table": "Expense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Expense_payerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Expense_payerId_fkey",
+          "public",
+          "\"public\".\"Expense\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Expense_payerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Expense\"\nADD CONSTRAINT \"Expense_payerId_fkey\"\nFOREIGN KEY (\"payerId\")\nREFERENCES \"public\".\"User\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Expense_payerId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Expense_payerId_fkey",
+          "public",
+          "\"public\".\"Expense\""
+        ]
+      }
+    ]
+  }
+]
