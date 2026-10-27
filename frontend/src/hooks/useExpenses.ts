@@ -1,11 +1,7 @@
-
 import { useCallback, useEffect, useState } from 'react';
 import type { Expense } from '../types/Expense';
 
-const host =
-  import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-const expensesUrl = `${host}/api/expenses`;
+const host = import.meta.env.VITE_API_URL || 'http://unknown-api-url.com';
 
 interface UseExpensesResult {
   expenses: Expense[];
@@ -28,13 +24,10 @@ function useExpenses(): UseExpensesResult {
     try {
       setLoading(true);
       setError(null);
-
-      const response = await fetch(expensesUrl);
-
+      const response = await fetch(`${host}/expenses`);
       if (!response.ok) {
         throw new Error(`Failed to fetch expenses (${response.status})`);
       }
-
       const data = (await response.json()) as Expense[];
       setExpenses(data);
     } catch (err) {
@@ -53,17 +46,14 @@ function useExpenses(): UseExpensesResult {
     async (expense: Expense) => {
       try {
         setError(null);
-
-        const response = await fetch(expensesUrl, {
+        const response = await fetch(`${host}/expenses`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(expense),
         });
-
         if (!response.ok) {
           throw new Error(`Failed to add expense (${response.status})`);
         }
-
         await fetchExpenses();
       } catch (err) {
         setError(errorMessage(err));
@@ -75,15 +65,10 @@ function useExpenses(): UseExpensesResult {
   const resetExpenses = useCallback(async () => {
     try {
       setError(null);
-
-      const response = await fetch(`${expensesUrl}/reset`, {
-        method: 'POST',
-      });
-
+      const response = await fetch(`${host}/expenses/reset`, { method: 'POST' });
       if (!response.ok) {
         throw new Error(`Failed to reset expenses (${response.status})`);
       }
-
       await fetchExpenses();
     } catch (err) {
       setError(errorMessage(err));
