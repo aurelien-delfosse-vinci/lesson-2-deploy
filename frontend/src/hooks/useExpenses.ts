@@ -1,10 +1,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
-import type { Expense } from '../types/Expense';
+import type { Expense, NewExpense } from "../types/Expense";
 
 const host = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-type NewExpense = Omit<Expense, 'id'>;
 
 interface UseExpensesResult {
   expenses: Expense[];
