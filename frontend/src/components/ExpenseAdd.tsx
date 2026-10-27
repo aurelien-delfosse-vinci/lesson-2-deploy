@@ -2,9 +2,9 @@
 import { useState } from "react";
 import type { Expense } from "../types/Expense";
 
-interface ExpenseAddProps {
-  addExpense: (expense: Expense) => void;
-}
+//interface ExpenseAddProps {
+//  addExpense: (expense: Expense) => void;
+//}
 
 function ExpenseAdd() {
   const [payer, setPayer] = useState("Bob");
