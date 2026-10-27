@@ -6,31 +6,31 @@ import { isValidNewExpense } from "../guards/expenses.guard.ts";
 
 const expensesRouter = express.Router();
 
-expensesRouter.get("/", (req, res) => {
+expensesRouter.get("/", async (req, res) => {
   try {
-    const expenses = ExpensesService.getExpenses();
+    const expenses = await ExpensesService.getExpenses();
     res.json(expenses);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-expensesRouter.post("/", (req, res) => {
+expensesRouter.post("/", async (req, res) => {
   try {
     const expense: Expense = req.body;
     if (!isValidNewExpense(expense)) {
       return res.status(400).json({ error: "Invalid expense" });
     }
-    const expenses = ExpensesService.addExpense(expense);
+    const expenses = await ExpensesService.addExpense(expense);
     res.status(201).json(expenses);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-expensesRouter.post("/reset", (req, res) => {
+expensesRouter.post("/reset", async (req, res) => {
   try {
-    const expenses = ExpensesService.resetExpenses();
+    const expenses = await ExpensesService.resetExpenses();
     res.json(expenses);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
