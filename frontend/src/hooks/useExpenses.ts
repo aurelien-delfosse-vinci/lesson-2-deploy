@@ -24,7 +24,7 @@ function useExpenses(): UseExpensesResult {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${host}/expenses`);
+      const response = await fetch(`${host}/api/expenses`);
       if (!response.ok) {
         throw new Error(`Failed to fetch expenses (${response.status})`);
       }
@@ -46,7 +46,7 @@ function useExpenses(): UseExpensesResult {
     async (expense: Expense) => {
       try {
         setError(null);
-        const response = await fetch(`${host}/expenses`, {
+        const response = await fetch(`${host}/api/expenses`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(expense),
@@ -65,7 +65,7 @@ function useExpenses(): UseExpensesResult {
   const resetExpenses = useCallback(async () => {
     try {
       setError(null);
-      const response = await fetch(`${host}/expenses/reset`, { method: 'POST' });
+      const response = await fetch(`${host}/api/expenses/reset`, { method: 'POST' });
       if (!response.ok) {
         throw new Error(`Failed to reset expenses (${response.status})`);
       }
