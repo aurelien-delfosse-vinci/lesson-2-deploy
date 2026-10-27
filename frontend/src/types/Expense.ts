@@ -1,7 +1,9 @@
+export type Payer = "Bob" | "Alice";
+
 export interface NewExpense {
   date: string;
-  description: string;
-  payer: string;
+  description?: string;
+  payer: Payer;
   amount: number;
 }
 
