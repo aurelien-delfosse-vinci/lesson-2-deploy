@@ -1,7 +1,6 @@
 
 import { db } from "../src/prisma/db.ts";
-import { Expense, NewExpense } from "../types/expense.ts";
-
+import type { Expense, NewExpense } from "../types/expense.ts";
 
 export class ExpensesService {
   public static async getExpenses(): Promise<Expense[]> {
