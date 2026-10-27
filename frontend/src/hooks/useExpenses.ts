@@ -1,13 +1,16 @@
+
 import { useCallback, useEffect, useState } from 'react';
 import type { Expense } from '../types/Expense';
 
-const host = import.meta.env.VITE_API_URL || 'http://unknown-api-url.com';
+const host = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+type NewExpense = Omit<Expense, 'id'>;
 
 interface UseExpensesResult {
   expenses: Expense[];
   loading: boolean;
   error: string | null;
-  addExpense: (expense: Expense) => Promise<void>;
+  addExpense: (expense: NewExpense) => Promise<void>;
   resetExpenses: () => Promise<void>;
 }
 
@@ -24,10 +27,13 @@ function useExpenses(): UseExpensesResult {
     try {
       setLoading(true);
       setError(null);
+
       const response = await fetch(`${host}/api/expenses`);
+
       if (!response.ok) {
         throw new Error(`Failed to fetch expenses (${response.status})`);
       }
+
       const data = (await response.json()) as Expense[];
       setExpenses(data);
     } catch (err) {
@@ -37,23 +43,25 @@ function useExpenses(): UseExpensesResult {
     }
   }, []);
 
-  // Runs once on mount to load the initial expense list.
   useEffect(() => {
     fetchExpenses();
   }, [fetchExpenses]);
 
   const addExpense = useCallback(
-    async (expense: Expense) => {
+    async (expense: NewExpense) => {
       try {
         setError(null);
+
         const response = await fetch(`${host}/api/expenses`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(expense),
         });
+
         if (!response.ok) {
           throw new Error(`Failed to add expense (${response.status})`);
         }
+
         await fetchExpenses();
       } catch (err) {
         setError(errorMessage(err));
@@ -65,10 +73,15 @@ function useExpenses(): UseExpensesResult {
   const resetExpenses = useCallback(async () => {
     try {
       setError(null);
-      const response = await fetch(`${host}/api/expenses/reset`, { method: 'POST' });
+
+      const response = await fetch(`${host}/api/expenses/reset`, {
+        method: 'POST',
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to reset expenses (${response.status})`);
       }
+
       await fetchExpenses();
     } catch (err) {
       setError(errorMessage(err));
