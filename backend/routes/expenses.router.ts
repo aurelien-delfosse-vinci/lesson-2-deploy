@@ -33,6 +33,7 @@ expensesRouter.post("/reset", async (req, res) => {
     const expenses = await ExpensesService.resetExpenses();
     res.json(expenses);
   } catch (error) {
+    console.error("RESET EXPENSE ERROR:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
