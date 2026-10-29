@@ -28,13 +28,23 @@ export const expenseFilterSchema = z.object({
     .transform(Number)
     .pipe(z.number().finite().nonnegative())
     .optional(),
+
   payerId: z
     .string()
     .regex(/^\d+$/)
     .transform(Number)
     .pipe(z.number().int().positive())
     .optional(),
+
+  categoryId: z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number)
+    .pipe(z.number().int().positive())
+    .optional(),
 });
+
+export type ExpenseFilter = z.infer<typeof expenseFilterSchema>;
 
 export const newExpenseSchema = z.object({
   date: z.string().min(1),
@@ -45,5 +55,3 @@ export const newExpenseSchema = z.object({
     z.number().int().positive(),
   ),
 });
-
-export type ExpenseFilter = z.infer<typeof expenseFilterSchema>;

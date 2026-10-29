@@ -3,9 +3,10 @@ import type { Expense, NewExpense } from "../types/Expense";
 
 const host = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-interface ExpenseFilters {
+export interface ExpenseFilters {
   amount?: number;
   payerId?: string;
+  categoryId?: string;
 }
 
 interface UseExpensesResult {
@@ -28,18 +29,22 @@ function useExpenses(): UseExpensesResult {
   const [error, setError] = useState<string | null>(null);
 
   const fetchExpenses = useCallback(async (filters?: ExpenseFilters) => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
+    try {
       const params = new URLSearchParams();
 
       if (filters?.amount !== undefined) {
-        params.set("amount", String(filters.amount));
+        params.set("amount", filters.amount.toString());
       }
 
       if (filters?.payerId) {
         params.set("payerId", filters.payerId);
+      }
+
+      if (filters?.categoryId) {
+        params.set("categoryId", filters.categoryId);
       }
 
       const query = params.toString();
@@ -48,13 +53,15 @@ function useExpenses(): UseExpensesResult {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch expenses (${response.status})`);
+        throw new Error("Failed to fetch expenses");
       }
 
-      const data = (await response.json()) as Expense[];
+      const data: Expense[] = await response.json();
       setExpenses(data);
     } catch (err) {
-      setError(errorMessage(err));
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
     } finally {
       setLoading(false);
     }
@@ -64,12 +71,12 @@ function useExpenses(): UseExpensesResult {
     void fetchExpenses();
   }, [fetchExpenses]);
 
- const searchExpenses = useCallback(
-  async (filters: ExpenseFilters) => {
-    await fetchExpenses(filters);
-  },
-  [fetchExpenses],
-);
+  const searchExpenses = useCallback(
+    async (filters: ExpenseFilters) => {
+      await fetchExpenses(filters);
+    },
+    [fetchExpenses],
+  );
 
   const addExpense = useCallback(
     async (expense: NewExpense) => {

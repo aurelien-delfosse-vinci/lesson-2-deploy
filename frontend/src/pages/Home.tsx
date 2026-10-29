@@ -23,6 +23,7 @@ function Home() {
 
   const [amount, setAmount] = useState("");
   const [payerId, setPayerId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
 
   const [sortingAlgo, setSortingAlgo] = useState<
     (a: Expense, b: Expense) => number
@@ -35,30 +36,39 @@ function Home() {
   };
 
   const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  event.preventDefault();
 
-    const filters: { amount?: number; payerId?: string } = {};
+  const filters: {
+    amount?: number;
+    payerId?: string;
+    categoryId?: string;
+  } = {};
 
-    if (amount.trim() !== "") {
-      const minimumAmount = Number(amount);
+  if (amount.trim() !== "") {
+    const minimumAmount = Number(amount);
 
-      if (!Number.isFinite(minimumAmount) || minimumAmount < 0) {
-        return;
-      }
-
-      filters.amount = minimumAmount;
+    if (!Number.isFinite(minimumAmount) || minimumAmount < 0) {
+      return;
     }
 
-    if (payerId !== "") {
-      filters.payerId = payerId;
-    }
+    filters.amount = minimumAmount;
+  }
 
-    await searchExpenses(filters);
-  };
+  if (payerId !== "") {
+    filters.payerId = payerId;
+  }
+
+  if (categoryId !== "") {
+    filters.categoryId = categoryId;
+  }
+
+  await searchExpenses(filters);
+};
 
   const handleShowAll = async () => {
     setAmount("");
     setPayerId("");
+    setCategoryId("");
     await showAllExpenses();
   };
 
@@ -125,7 +135,11 @@ function Home() {
       <h2>Your expenses</h2>
 
       {sortedExpenses.length > 0 && (
-        <ExpenseSorter setSortingAlgo={handleAlgoChange} />
+        <ExpenseSorter 
+        setSortingAlgo={handleAlgoChange} 
+        searchExpenses={searchExpenses}
+        showAllExpenses={showAllExpenses}
+        />
       )}
 
       <ul>

@@ -7,23 +7,19 @@ import { isValidNewExpense } from "../guards/expenses.guard.ts";
 const expensesRouter = express.Router();
 
 expensesRouter.get("/", async (req, res) => {
+  const result = expenseFilterSchema.safeParse(req.query);
+
+  if (!result.success) {
+    res.status(400).json({ error: result.error.flatten() });
+    return;
+  }
+
   try {
-    const result = expenseFilterSchema.safeParse({
-      amount: req.query.amount,
-      payerId: req.query.payerId,
-    });
-
-    if (!result.success) {
-      return res.status(400).json({
-        error: "Invalid expense filters",
-      });
-    }
-
     const expenses = await ExpensesService.getExpenses(result.data);
-    return res.json(expenses);
+    res.json(expenses);
   } catch (error) {
-    console.error("GET EXPENSES ERROR:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error(error);
+    res.status(500).json({ error: "Unable to fetch expenses" });
   }
 });
 

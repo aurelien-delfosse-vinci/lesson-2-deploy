@@ -5,36 +5,36 @@ import path from "node:path";
 
 export class ExpensesService {
   private static readonly resetPath = path.resolve("data/expenses.init.json");
-  public static async getExpenses(filter?: ExpenseFilter): Promise<Expense[]> {
-    const minimumAmount = filter?.amount;
-    const payerId = filter?.payerId;
+    public static async getExpenses(filters: ExpenseFilter = {}) {
+    let expenses = await db.orm.public.Expense
+      .include("payer")
+      .include("category")
+      .all();
 
-    let expenses;
+    if (filters.amount !== undefined) {
+      expenses = expenses.filter(
+        (expense) => expense.amount >= filters.amount!,
+      );
+    }
 
-    if (minimumAmount !== undefined && payerId !== undefined) {
-      expenses = await db.orm.public.Expense.include("payer")
-        .include("category")
-        .where(({ amount }) => amount.gte(minimumAmount))
-        .where({ payerId })
-        .all();
-    } else if (minimumAmount !== undefined) {
-      expenses = await db.orm.public.Expense.include("payer")
-        .include("category")
-        .where(({ amount }) => amount.gte(minimumAmount))
-        .all();
-    } else if (payerId !== undefined) {
-      expenses = await db.orm.public.Expense.include("payer")
-        .include("category")
-        .where({ payerId })
-        .all();
-    } else {
-      expenses = await db.orm.public.Expense.include("payer")
-        .include("category")
-        .all();
+    if (filters.payerId !== undefined) {
+      expenses = expenses.filter(
+        (expense) => expense.payerId === filters.payerId,
+      );
+    }
+
+    if (filters.categoryId !== undefined) {
+      expenses = expenses.filter(
+        (expense) => expense.categoryId === filters.categoryId,
+      );
     }
 
     return expenses.map((expense) => ({
       id: expense.id.toString(),
+      date: expense.date,
+      description: expense.description,
+      amount: expense.amount,
+      payer: expense.payer.name,
       category: expense.category
         ? {
             id: expense.category.id.toString(),
@@ -42,12 +42,9 @@ export class ExpensesService {
             colour: expense.category.colour,
           }
         : null,
-      date: expense.date,
-      description: expense.description,
-      payer: expense.payer.name,
-      amount: expense.amount,
     }));
   }
+
 
   public static async addExpense(newExpense: NewExpense): Promise<Expense[]> {
     const payer = await db.orm.public.User.first({
