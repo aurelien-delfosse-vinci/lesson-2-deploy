@@ -9,21 +9,21 @@ function useCategories() {
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
-    try {
-      setLoadingCategories(true);
-      setCategoriesError(null);
+    setLoadingCategories(true);
+    setCategoriesError(null);
 
+    try {
       const response = await fetch(`${host}/api/categories`);
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch categories (${response.status})`);
+        throw new Error("Impossible de récupérer les catégories.");
       }
 
-      const data = (await response.json()) as Category[];
+      const data: Category[] = await response.json();
       setCategories(data);
     } catch (error) {
       setCategoriesError(
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Une erreur est survenue.",
       );
     } finally {
       setLoadingCategories(false);
@@ -34,7 +34,12 @@ function useCategories() {
     void fetchAll();
   }, [fetchAll]);
 
-  return { categories, loadingCategories, categoriesError, fetchAll };
+  return {
+    categories,
+    loadingCategories,
+    categoriesError,
+    fetchAll,
+  };
 }
 
 export default useCategories;
