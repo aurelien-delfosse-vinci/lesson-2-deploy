@@ -17,6 +17,13 @@ export const expenseFilterSchema = z.object({
     .transform(Number)
     .pipe(z.number().finite().nonnegative())
     .optional(),
+
+  payerId: z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number)
+    .pipe(z.number().int().positive())
+    .optional(),
 });
 
 export type ExpenseFilter = z.infer<typeof expenseFilterSchema>;

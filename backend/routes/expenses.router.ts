@@ -10,11 +10,12 @@ expensesRouter.get("/", async (req, res) => {
   try {
     const result = expenseFilterSchema.safeParse({
       amount: req.query.amount,
+      payerId: req.query.payerId,
     });
 
     if (!result.success) {
       return res.status(400).json({
-        error: "Invalid amount filter",
+        error: "Invalid expense filters",
       });
     }
 
@@ -22,9 +23,7 @@ expensesRouter.get("/", async (req, res) => {
     return res.json(expenses);
   } catch (error) {
     console.error("GET EXPENSES ERROR:", error);
-    return res.status(500).json({
-      error: "Internal server error",
-    });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 

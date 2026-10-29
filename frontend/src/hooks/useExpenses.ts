@@ -3,14 +3,19 @@ import type { Expense, NewExpense } from "../types/Expense";
 
 const host = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+interface ExpenseFilters {
+  amount?: number;
+  payerId?: string;
+}
+
 interface UseExpensesResult {
   expenses: Expense[];
   loading: boolean;
   error: string | null;
   addExpense: (expense: NewExpense) => Promise<void>;
   resetExpenses: () => Promise<void>;
-  searchExpensesByAmount: (amount: number) => Promise<void>;
   showAllExpenses: () => Promise<void>;
+  searchExpenses: (filters: ExpenseFilters) => Promise<void>;
 }
 
 function errorMessage(error: unknown): string {
@@ -22,15 +27,23 @@ function useExpenses(): UseExpensesResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchExpenses = useCallback(async (amount?: number) => {
+  const fetchExpenses = useCallback(async (filters?: ExpenseFilters) => {
     try {
       setLoading(true);
       setError(null);
 
-      const url =
-        amount === undefined
-          ? `${host}/api/expenses`
-          : `${host}/api/expenses?amount=${encodeURIComponent(amount)}`;
+      const params = new URLSearchParams();
+
+      if (filters?.amount !== undefined) {
+        params.set("amount", String(filters.amount));
+      }
+
+      if (filters?.payerId) {
+        params.set("payerId", filters.payerId);
+      }
+
+      const query = params.toString();
+      const url = `${host}/api/expenses${query ? `?${query}` : ""}`;
 
       const response = await fetch(url);
 
@@ -51,12 +64,12 @@ function useExpenses(): UseExpensesResult {
     void fetchExpenses();
   }, [fetchExpenses]);
 
-  const searchExpensesByAmount = useCallback(
-    async (amount: number) => {
-      await fetchExpenses(amount);
-    },
-    [fetchExpenses],
-  );
+ const searchExpenses = useCallback(
+  async (filters: ExpenseFilters) => {
+    await fetchExpenses(filters);
+  },
+  [fetchExpenses],
+);
 
   const addExpense = useCallback(
     async (expense: NewExpense) => {
@@ -109,8 +122,8 @@ function useExpenses(): UseExpensesResult {
     error,
     addExpense,
     resetExpenses,
-    searchExpensesByAmount,
     showAllExpenses,
+    searchExpenses,
   };
 }
 
