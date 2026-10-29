@@ -74,13 +74,18 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
 
         <br />
 
-        <label htmlFor="categoryId">Category:</label>
+        <label htmlFor="categoryId">Category</label>
+
         <select
           id="categoryId"
-          {...register("categoryId")}
+          name="categoryId"
+          value={categoryId}
+          onChange={(event) => setCategoryId(event.target.value)}
+          required
           disabled={loadingCategories || categories.length === 0}
         >
           <option value="">Select a category</option>
+
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -88,10 +93,8 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
           ))}
         </select>
 
-        {errors.categoryId && <p role="alert">{errors.categoryId.message}</p>}
         {loadingCategories && <p>Loading categories...</p>}
         {categoriesError && <p role="alert">{categoriesError}</p>}
-
         <br />
 
         <label>
