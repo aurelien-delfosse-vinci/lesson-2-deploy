@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { NewExpense } from "../types/Expense";
 import useCategories from "../hooks/useCategories";
-import { useState } from "react";
 
 // Schéma de validation Zod
 const expenseSchema = z.object({
@@ -46,15 +45,12 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
 
   const { categories, loadingCategories, categoriesError } = useCategories();
 
-  const [categoryId, setCategoryId] = useState("");
-
   async function onSubmit(data: ExpenseFormData) {
     await addExpense({
       ...data,
-      categoryId,
+      categoryId: data.categoryId,
       description: data.description ?? "",
     });
-    setCategoryId("");
   }
 
   return (
@@ -78,10 +74,7 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
 
         <select
           id="categoryId"
-          name="categoryId"
-          value={categoryId}
-          onChange={(event) => setCategoryId(event.target.value)}
-          required
+          {...register("categoryId")}
           disabled={loadingCategories || categories.length === 0}
         >
           <option value="">Select a category</option>
@@ -93,8 +86,7 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
           ))}
         </select>
 
-        {loadingCategories && <p>Loading categories...</p>}
-        {categoriesError && <p role="alert">{categoriesError}</p>}
+        {errors.categoryId && <p role="alert">{errors.categoryId.message}</p>}
         <br />
 
         <label>
