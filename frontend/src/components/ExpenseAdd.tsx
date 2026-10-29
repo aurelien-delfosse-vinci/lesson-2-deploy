@@ -43,7 +43,7 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
     },
   });
 
-  const { categories, loadingCategories, categoriesError } = useCategories();
+  const { categories, loadingCategories} = useCategories();
 
   async function onSubmit(data: ExpenseFormData) {
     await addExpense({
