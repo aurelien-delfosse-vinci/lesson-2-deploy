@@ -2,6 +2,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { NewExpense } from "../types/Expense";
+import useCategories from "../hooks/useCategories";
+import { useState } from "react";
 
 // Schéma de validation Zod
 const expenseSchema = z.object({
@@ -11,16 +13,17 @@ const expenseSchema = z.object({
 
   date: z.string().min(1, "Date is required"),
 
-  description: z
-    .string()
-    .max(200, "Description cannot exceed 200 characters")
-    .optional(),
+  description: z.string().max(200, "Description cannot exceed 200 characters"),
 
   amount: z
     .number({ error: "Amount must be a number" })
     .positive("Amount must be greater than 0")
     .finite("Amount must be a finite number"),
+
+  categoryId: z.string().min(1, "Please select a category"),
 });
+
+type ExpenseFormData = z.infer<typeof expenseSchema>;
 
 interface ExpenseAddProps {
   addExpense: (expense: NewExpense) => Promise<void>;
@@ -31,17 +34,27 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<NewExpense>({
+  } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       payer: undefined,
       date: "",
       description: "",
+      categoryId: "",
     },
   });
 
-  async function onSubmit(data: NewExpense) {
-    await addExpense(data);
+  const { categories, loadingCategories, categoriesError } = useCategories();
+
+  const [categoryId, setCategoryId] = useState("");
+
+  async function onSubmit(data: ExpenseFormData) {
+    await addExpense({
+      ...data,
+      categoryId,
+      description: data.description ?? "",
+    });
+    setCategoryId("");
   }
 
   return (
@@ -56,19 +69,35 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
             <option value="Bob">Bob</option>
             <option value="Alice">Alice</option>
           </select>
-          {errors.payer && (
-            <p role="alert">{errors.payer.message}</p>
-          )}
+          {errors.payer && <p role="alert">{errors.payer.message}</p>}
         </label>
+
+        <br />
+
+        <label htmlFor="categoryId">Category:</label>
+        <select
+          id="categoryId"
+          {...register("categoryId")}
+          disabled={loadingCategories || categories.length === 0}
+        >
+          <option value="">Select a category</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+
+        {errors.categoryId && <p role="alert">{errors.categoryId.message}</p>}
+        {loadingCategories && <p>Loading categories...</p>}
+        {categoriesError && <p role="alert">{categoriesError}</p>}
 
         <br />
 
         <label>
           Date:
           <input type="date" {...register("date")} />
-          {errors.date && (
-            <p role="alert">{errors.date.message}</p>
-          )}
+          {errors.date && <p role="alert">{errors.date.message}</p>}
         </label>
 
         <br />
@@ -95,14 +124,17 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
             placeholder="Enter amount"
             {...register("amount", { valueAsNumber: true })}
           />
-          {errors.amount && (
-            <p role="alert">{errors.amount.message}</p>
-          )}
+          {errors.amount && <p role="alert">{errors.amount.message}</p>}
         </label>
 
         <br />
 
-        <button type="submit">Add</button>
+        <button
+          type="submit"
+          disabled={loadingCategories || categories.length === 0}
+        >
+          Add
+        </button>
       </form>
     </div>
   );

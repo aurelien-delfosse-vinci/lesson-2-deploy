@@ -4,6 +4,7 @@ import logger from 'morgan';
 import cors from 'cors';
 import expensesRouter from './routes/expenses.router.ts';
 import usersRouter from "./routes/users.router.ts";
+import categoriesRouter from './routes/categories.router.ts';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get('/ping', (_req, res) => {
 
 app.use('/api/expenses', expensesRouter);
 app.use('/api/users', usersRouter);
+app.use("/api/categories", categoriesRouter);
 
 const port = Number(process.env.PORT) || 3000;
 

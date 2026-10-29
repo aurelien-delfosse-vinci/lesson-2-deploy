@@ -5,44 +5,49 @@ import path from "node:path";
 
 export class ExpensesService {
   private static readonly resetPath = path.resolve("data/expenses.init.json");
-  public static async getExpenses(
-  filter?: ExpenseFilter,
-): Promise<Expense[]> {
-  const minimumAmount = filter?.amount;
-  const payerId = filter?.payerId;
+  public static async getExpenses(filter?: ExpenseFilter): Promise<Expense[]> {
+    const minimumAmount = filter?.amount;
+    const payerId = filter?.payerId;
 
-  let expenses;
+    let expenses;
 
-  if (minimumAmount !== undefined && payerId !== undefined) {
-    expenses = await db.orm.public.Expense
-      .include("payer")
-      .where(({ amount }) => amount.gte(minimumAmount))
-      .where({ payerId })
-      .all();
-  } else if (minimumAmount !== undefined) {
-    expenses = await db.orm.public.Expense
-      .include("payer")
-      .where(({ amount }) => amount.gte(minimumAmount))
-      .all();
-  } else if (payerId !== undefined) {
-    expenses = await db.orm.public.Expense
-      .include("payer")
-      .where({ payerId })
-      .all();
-  } else {
-    expenses = await db.orm.public.Expense
-      .include("payer")
-      .all();
+    if (minimumAmount !== undefined && payerId !== undefined) {
+      expenses = await db.orm.public.Expense.include("payer")
+        .include("category")
+        .where(({ amount }) => amount.gte(minimumAmount))
+        .where({ payerId })
+        .all();
+    } else if (minimumAmount !== undefined) {
+      expenses = await db.orm.public.Expense.include("payer")
+        .include("category")
+        .where(({ amount }) => amount.gte(minimumAmount))
+        .all();
+    } else if (payerId !== undefined) {
+      expenses = await db.orm.public.Expense.include("payer")
+        .include("category")
+        .where({ payerId })
+        .all();
+    } else {
+      expenses = await db.orm.public.Expense.include("payer")
+        .include("category")
+        .all();
+    }
+
+    return expenses.map((expense) => ({
+      id: expense.id.toString(),
+      category: expense.category
+        ? {
+            id: expense.category.id.toString(),
+            name: expense.category.name,
+            colour: expense.category.colour,
+          }
+        : null,
+      date: expense.date,
+      description: expense.description,
+      payer: expense.payer.name,
+      amount: expense.amount,
+    }));
   }
-
-  return expenses.map((expense) => ({
-    id: expense.id.toString(),
-    date: expense.date,
-    description: expense.description,
-    payer: expense.payer.name,
-    amount: expense.amount,
-  }));
-}
 
   public static async addExpense(newExpense: NewExpense): Promise<Expense[]> {
     const payer = await db.orm.public.User.first({
@@ -52,14 +57,21 @@ export class ExpensesService {
     if (!payer) {
       throw new Error(`Payer "${newExpense.payer}" not found`);
     }
+    const category = await db.orm.public.Category.first({
+      id: Number(newExpense.categoryId),
+    });
+
+    if (!category) {
+      throw new Error(`Category "${newExpense.categoryId}" not found`);
+    }
 
     await db.orm.public.Expense.create({
       date: newExpense.date,
       description: newExpense.description ?? "",
       amount: newExpense.amount,
       payerId: payer.id,
+      categoryId: category.id,
     });
-
     return this.getExpenses();
   }
   public static async resetExpenses(): Promise<Expense[]> {
