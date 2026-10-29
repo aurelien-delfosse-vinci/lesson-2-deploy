@@ -1,12 +1,22 @@
 import { db } from "../src/prisma/db.ts";
-import type { Expense, NewExpense } from "../types/expense.ts";
+import type { Expense, ExpenseFilter, NewExpense } from "../types/expense.ts";
 import fs from "node:fs";
 import path from "node:path";
 
 export class ExpensesService {
   private static readonly resetPath = path.resolve("data/expenses.init.json");
-  public static async getExpenses(): Promise<Expense[]> {
-    const expenses = await db.orm.public.Expense.include("payer").all();
+  public static async getExpenses(filter?: ExpenseFilter): Promise<Expense[]> {
+    let expenses;
+
+    const minimumAmount = filter?.amount;
+
+    if (minimumAmount !== undefined) {
+      expenses = await db.orm.public.Expense.include("payer")
+        .where(({ amount }) => amount.gte(minimumAmount))
+        .all();
+    } else {
+      expenses = await db.orm.public.Expense.include("payer").all();
+    }
 
     return expenses.map((expense) => ({
       id: expense.id.toString(),

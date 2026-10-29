@@ -1,8 +1,7 @@
-
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 import type { Expense, NewExpense } from "../types/Expense";
 
-const host = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const host = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 interface UseExpensesResult {
   expenses: Expense[];
@@ -10,10 +9,12 @@ interface UseExpensesResult {
   error: string | null;
   addExpense: (expense: NewExpense) => Promise<void>;
   resetExpenses: () => Promise<void>;
+  searchExpensesByAmount: (amount: number) => Promise<void>;
+  showAllExpenses: () => Promise<void>;
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Unknown error';
+  return error instanceof Error ? error.message : "Unknown error";
 }
 
 function useExpenses(): UseExpensesResult {
@@ -21,12 +22,17 @@ function useExpenses(): UseExpensesResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchExpenses = useCallback(async () => {
+  const fetchExpenses = useCallback(async (amount?: number) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${host}/api/expenses`);
+      const url =
+        amount === undefined
+          ? `${host}/api/expenses`
+          : `${host}/api/expenses?amount=${encodeURIComponent(amount)}`;
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch expenses (${response.status})`);
@@ -42,8 +48,15 @@ function useExpenses(): UseExpensesResult {
   }, []);
 
   useEffect(() => {
-    fetchExpenses();
+    void fetchExpenses();
   }, [fetchExpenses]);
+
+  const searchExpensesByAmount = useCallback(
+    async (amount: number) => {
+      await fetchExpenses(amount);
+    },
+    [fetchExpenses],
+  );
 
   const addExpense = useCallback(
     async (expense: NewExpense) => {
@@ -51,8 +64,8 @@ function useExpenses(): UseExpensesResult {
         setError(null);
 
         const response = await fetch(`${host}/api/expenses`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(expense),
         });
 
@@ -73,7 +86,7 @@ function useExpenses(): UseExpensesResult {
       setError(null);
 
       const response = await fetch(`${host}/api/expenses/reset`, {
-        method: 'POST',
+        method: "POST",
       });
 
       if (!response.ok) {
@@ -86,7 +99,19 @@ function useExpenses(): UseExpensesResult {
     }
   }, [fetchExpenses]);
 
-  return { expenses, loading, error, addExpense, resetExpenses };
+  const showAllExpenses = useCallback(async () => {
+    await fetchExpenses();
+  }, [fetchExpenses]);
+
+  return {
+    expenses,
+    loading,
+    error,
+    addExpense,
+    resetExpenses,
+    searchExpensesByAmount,
+    showAllExpenses,
+  };
 }
 
 export default useExpenses;
