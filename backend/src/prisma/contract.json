@@ -4,6 +4,10 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
+    "Category": {
+      "model": "Category",
+      "namespace": "public"
+    },
     "Expense": {
       "model": "Expense",
       "namespace": "public"
@@ -25,12 +29,76 @@
     "namespaces": {
       "public": {
         "models": {
+          "Category": {
+            "fields": {
+              "colour": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "expenses": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "categoryId"
+                  ]
+                },
+                "to": {
+                  "model": "Expense",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "colour": {
+                  "column": "colour"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                }
+              },
+              "namespaceId": "public",
+              "table": "Category"
+            }
+          },
           "Expense": {
             "fields": {
               "amount": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "categoryId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -64,6 +132,22 @@
               }
             },
             "relations": {
+              "category": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "categoryId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Category",
+                  "namespace": "public"
+                }
+              },
               "participants": {
                 "cardinality": "N:M",
                 "on": {
@@ -113,6 +197,9 @@
               "fields": {
                 "amount": {
                   "column": "amount"
+                },
+                "categoryId": {
+                  "column": "categoryId"
                 },
                 "date": {
                   "column": "date"
@@ -423,12 +510,54 @@
       "public": {
         "entries": {
           "table": {
+            "Category": {
+              "columns": {
+                "colour": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "name"
+                  ]
+                }
+              ]
+            },
             "Expense": {
               "columns": {
                 "amount": {
                   "codecId": "pg/float8@1",
                   "dataType": "pg/float8",
                   "nullable": false
+                },
+                "categoryId": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
                 },
                 "date": {
                   "codecId": "pg/timestamptz-string@1",
@@ -478,9 +607,36 @@
                     "namespaceId": "public",
                     "tableName": "User"
                   }
+                },
+                {
+                  "index": {
+                    "name": "Expense_categoryId_idx_15c304f2"
+                  },
+                  "source": {
+                    "columns": [
+                      "categoryId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Expense"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Category"
+                  }
                 }
               ],
               "indexes": [
+                {
+                  "columns": [
+                    "categoryId"
+                  ],
+                  "name": "Expense_categoryId_idx_15c304f2",
+                  "prefix": "Expense_categoryId_idx",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "payerId"
@@ -727,7 +883,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b31c0cdda34f8a3007f23ad411cab149d371c3b906002268192171b765904468"
+    "storageHash": "87659713d6f2c51f7eb085d403b2dafacc651590d041d2d8457c0373b27b662f"
   },
   "capabilities": {
     "postgres": {
