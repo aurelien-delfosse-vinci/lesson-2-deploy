@@ -6,6 +6,7 @@ import { isValidNewExpense } from "../guards/expenses.guard.ts";
 
 const expensesRouter = express.Router();
 
+
 expensesRouter.get("/", async (req, res) => {
   const result = expenseFilterSchema.safeParse(req.query);
 
@@ -16,10 +17,46 @@ expensesRouter.get("/", async (req, res) => {
 
   try {
     const expenses = await ExpensesService.getExpenses(result.data);
-    res.json(expenses);
+
+    const expensesForList = expenses.map((expense) => ({
+      id: expense.id.toString(),
+      description: expense.description,
+      amount: expense.amount,
+      date: expense.date,
+      payer: {
+        id: expense.payer.id.toString(),
+        name: expense.payer.name,
+      },
+      category: expense.category
+        ? {
+            id: expense.category.id.toString(),
+            name: expense.category.name,
+            colour: expense.category.colour,
+          }
+        : null,
+    }));
+
+    res.json(expensesForList);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Unable to fetch expenses" });
+  }
+});
+
+
+expensesRouter.get('/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid id' });
+    }
+    const expense = await ExpensesService.getExpenseById(id);
+    if (!expense) {
+      return res.status(404).json({ error: 'Expense not found' });
+    }
+    res.json(expense);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -35,18 +72,6 @@ expensesRouter.post("/", async (req, res) => {
     return res.status(201).json(expenses);
   } catch (error) {
     console.error("ADD EXPENSE ERROR:", error);
-    return res.status(500).json({
-      error: "Internal server error",
-    });
-  }
-});
-
-expensesRouter.post("/reset", async (req, res) => {
-  try {
-    const expenses = await ExpensesService.resetExpenses();
-    return res.json(expenses);
-  } catch (error) {
-    console.error("RESET EXPENSE ERROR:", error);
     return res.status(500).json({
       error: "Internal server error",
     });

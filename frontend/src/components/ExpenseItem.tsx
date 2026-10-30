@@ -2,10 +2,11 @@
  * A simple component to display an expense item
  */
 
-import type { Expense } from "../types/Expense";
+import type { ExpenseListItem } from "../types/Expense";
+import { Link } from "react-router";
 
 interface ExpenseItemProps {
-  expense: Expense;
+  expense: ExpenseListItem;
 }
 
 function ExpenseItem({ expense }: ExpenseItemProps) {
@@ -13,10 +14,10 @@ function ExpenseItem({ expense }: ExpenseItemProps) {
     <div>
       <h3>Expense {expense.id}</h3>
       <p>Date: {expense.date}</p>
-      <p>Description: {expense.description}</p>
+      <Link to={`/expenses/${expense.id}`}>{expense.description}</Link>
       {/* amount must be restricted to 2 decimal places */}
       <p>Amount: {expense.amount.toFixed(2)}</p>
-      <p>Payer: {expense.payer}</p>
+      <p>Payer: {expense.payer.name}</p>
       {expense.category && (
         <span
           style={{

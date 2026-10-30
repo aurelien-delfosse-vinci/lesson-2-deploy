@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Category } from "../types/Category";
-
-const host = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { apiRequest } from "../lib/rest";
 
 function useCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -13,13 +12,7 @@ function useCategories() {
     setCategoriesError(null);
 
     try {
-      const response = await fetch(`${host}/api/categories`);
-
-      if (!response.ok) {
-        throw new Error("Impossible de récupérer les catégories.");
-      }
-
-      const data: Category[] = await response.json();
+      const data = await apiRequest<Category[]>("/api/categories");
       setCategories(data);
     } catch (error) {
       setCategoriesError(

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "../types/User";
-
-const host = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { apiRequest } from "../lib/rest";
 
 function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -13,18 +12,10 @@ function useUsers() {
       setLoadingUsers(true);
       setUsersError(null);
 
-      const response = await fetch(`${host}/api/users`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users (${response.status})`);
-      }
-
-      const data = (await response.json()) as User[];
+      const data = await apiRequest<User[]>("/api/users");
       setUsers(data);
     } catch (error) {
-      setUsersError(
-        error instanceof Error ? error.message : "Unknown error",
-      );
+      setUsersError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setLoadingUsers(false);
     }

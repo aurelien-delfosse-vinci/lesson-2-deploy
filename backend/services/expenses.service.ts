@@ -5,31 +5,42 @@ import path from "node:path";
 
 export class ExpensesService {
   private static readonly resetPath = path.resolve("data/expenses.init.json");
-    public static async getExpenses(filters: ExpenseFilter = {}) {
-    let expenses = await db.orm.public.Expense
-      .include("payer")
+  public static async getExpenses(filters: ExpenseFilter = {}) {
+  let expenses = await db.orm.public.Expense.include("payer")
+    .include("category")
+    .all();
+
+  if (filters.amount !== undefined) {
+    expenses = expenses.filter(
+      (expense) => expense.amount >= filters.amount!,
+    );
+  }
+
+  if (filters.payerId !== undefined) {
+    expenses = expenses.filter(
+      (expense) => expense.payerId === filters.payerId,
+    );
+  }
+
+  if (filters.categoryId !== undefined) {
+    expenses = expenses.filter(
+      (expense) => expense.categoryId === filters.categoryId,
+    );
+  }
+
+  return expenses;
+}
+
+  public static async getExpenseById(id: number): Promise<Expense | undefined> {
+    const expense = await db.orm.public.Expense.include("payer")
       .include("category")
-      .all();
+      .first({ id });
 
-    if (filters.amount !== undefined) {
-      expenses = expenses.filter(
-        (expense) => expense.amount >= filters.amount!,
-      );
+    if (!expense) {
+      return undefined;
     }
 
-    if (filters.payerId !== undefined) {
-      expenses = expenses.filter(
-        (expense) => expense.payerId === filters.payerId,
-      );
-    }
-
-    if (filters.categoryId !== undefined) {
-      expenses = expenses.filter(
-        (expense) => expense.categoryId === filters.categoryId,
-      );
-    }
-
-    return expenses.map((expense) => ({
+    return {
       id: expense.id.toString(),
       date: expense.date,
       description: expense.description,
@@ -42,11 +53,10 @@ export class ExpensesService {
             colour: expense.category.colour,
           }
         : null,
-    }));
+    };
   }
 
-
-  public static async addExpense(newExpense: NewExpense): Promise<Expense[]> {
+  public static async addExpense(newExpense: NewExpense) {
     const payer = await db.orm.public.User.first({
       name: newExpense.payer,
     });
@@ -71,7 +81,7 @@ export class ExpensesService {
     });
     return this.getExpenses();
   }
-  public static async resetExpenses(): Promise<Expense[]> {
+  public static async resetExpenses(){
     const defaultExpenses: NewExpense[] = JSON.parse(
       fs.readFileSync(this.resetPath, "utf-8"),
     );
