@@ -1,4 +1,5 @@
-
+import { createYoga } from "graphql-yoga";
+import { schema } from "./src/graphql/schema.ts";
 import express from 'express';
 import logger from 'morgan';
 import cors from 'cors';
@@ -29,6 +30,15 @@ app.use('/api/users', usersRouter);
 app.use("/api/categories", categoriesRouter);
 
 const port = Number(process.env.PORT) || 3000;
+
+const yoga = createYoga({
+  schema,
+  graphqlEndpoint: "/graphql",
+  cors: false,
+  maskedErrors: process.env.NODE_ENV === "production",
+});
+
+app.use(yoga.graphqlEndpoint, yoga);
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server listening on port ${port}`);

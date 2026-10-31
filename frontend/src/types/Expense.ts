@@ -1,14 +1,25 @@
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  bankAccount: string | null;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  colour: string;
+}
+
 export interface Expense {
   id: string;
   date: string;
   description: string;
-  payer: string;
   amount: number;
-  category: {
-    id: string;
-    name: string;
-    colour: string;
-  } | null;
+  payer: User;
+  participants: User[];
+  category: Category | null;
 }
 
 export interface ExpenseListItem {
@@ -20,13 +31,13 @@ export interface ExpenseListItem {
     id: string;
     name: string;
   };
-  category: {
-    id: string;
-    name: string;
-    colour: string;
-  } | null;
+  category: Category | null;
 }
 
-export type NewExpense = Omit<Expense, "id" | "category"> & {
+export type NewExpense = {
+  date: string;
+  description: string;
+  payer: string;
+  amount: number;
   categoryId: string;
 };

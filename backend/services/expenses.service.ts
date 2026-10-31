@@ -6,54 +6,39 @@ import path from "node:path";
 export class ExpensesService {
   private static readonly resetPath = path.resolve("data/expenses.init.json");
   public static async getExpenses(filters: ExpenseFilter = {}) {
-  let expenses = await db.orm.public.Expense.include("payer")
-    .include("category")
-    .all();
+    let expenses = await db.orm.public.Expense.include("payer")
+      .include("participants")
+      .include("category")
+      .all();
 
-  if (filters.amount !== undefined) {
-    expenses = expenses.filter(
-      (expense) => expense.amount >= filters.amount!,
-    );
+    if (filters.amount !== undefined) {
+      expenses = expenses.filter(
+        (expense) => expense.amount >= filters.amount!,
+      );
+    }
+
+    if (filters.payerId !== undefined) {
+      expenses = expenses.filter(
+        (expense) => expense.payerId === filters.payerId,
+      );
+    }
+
+    if (filters.categoryId !== undefined) {
+      expenses = expenses.filter(
+        (expense) => expense.categoryId === filters.categoryId,
+      );
+    }
+
+    return expenses;
   }
 
-  if (filters.payerId !== undefined) {
-    expenses = expenses.filter(
-      (expense) => expense.payerId === filters.payerId,
-    );
-  }
-
-  if (filters.categoryId !== undefined) {
-    expenses = expenses.filter(
-      (expense) => expense.categoryId === filters.categoryId,
-    );
-  }
-
-  return expenses;
-}
-
-  public static async getExpenseById(id: number): Promise<Expense | undefined> {
+  public static async getExpenseById(id: number) {
     const expense = await db.orm.public.Expense.include("payer")
+      .include("participants")
       .include("category")
       .first({ id });
 
-    if (!expense) {
-      return undefined;
-    }
-
-    return {
-      id: expense.id.toString(),
-      date: expense.date,
-      description: expense.description,
-      amount: expense.amount,
-      payer: expense.payer.name,
-      category: expense.category
-        ? {
-            id: expense.category.id.toString(),
-            name: expense.category.name,
-            colour: expense.category.colour,
-          }
-        : null,
-    };
+    return expense;
   }
 
   public static async addExpense(newExpense: NewExpense) {
@@ -81,7 +66,7 @@ export class ExpensesService {
     });
     return this.getExpenses();
   }
-  public static async resetExpenses(){
+  public static async resetExpenses() {
     const defaultExpenses: NewExpense[] = JSON.parse(
       fs.readFileSync(this.resetPath, "utf-8"),
     );
