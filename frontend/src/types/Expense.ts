@@ -41,3 +41,12 @@ export type NewExpense = {
   amount: number;
   categoryId: string;
 };
+
+export interface NewExpenseInput {
+  description: string;
+  amount: number;
+  date: string;
+  payerId: number;
+  participants: number[];
+  categoryId?: number | null;
+}

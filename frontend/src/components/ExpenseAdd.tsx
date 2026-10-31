@@ -1,14 +1,14 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { NewExpense } from "../types/Expense";
+import type { NewExpenseInput } from "../types/Expense";
 import useCategories from "../hooks/useCategories";
 
 // Schéma de validation Zod
 const expenseSchema = z.object({
-  payer: z.enum(["Bob", "Alice"], {
-    error: "Payer must be either Bob or Alice",
-  }),
+  payerId: z.number().int().positive(),
+
+  participants: z.array(z.number().int().positive()),
 
   date: z.string().min(1, "Date is required"),
 
@@ -19,13 +19,13 @@ const expenseSchema = z.object({
     .positive("Amount must be greater than 0")
     .finite("Amount must be a finite number"),
 
-  categoryId: z.string().min(1, "Please select a category"),
+  categoryId: z.number().int().positive().nullable(),
 });
 
 type ExpenseFormData = z.infer<typeof expenseSchema>;
 
 interface ExpenseAddProps {
-  addExpense: (expense: NewExpense) => Promise<void>;
+  addExpense: (expense: NewExpenseInput) => Promise<void>;
 }
 
 function ExpenseAdd({ addExpense }: ExpenseAddProps) {
@@ -36,19 +36,19 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
-      payer: undefined,
+      payerId: undefined,
+      participants: [],
       date: "",
       description: "",
-      categoryId: "",
+      categoryId: null,
     },
   });
 
-  const { categories, loadingCategories} = useCategories();
+  const { categories, loadingCategories } = useCategories();
 
   async function onSubmit(data: ExpenseFormData) {
     await addExpense({
       ...data,
-      categoryId: data.categoryId,
       description: data.description ?? "",
     });
   }
@@ -60,12 +60,30 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
       <form onSubmit={handleSubmit(onSubmit)}>
         <label>
           Payer:
-          <select {...register("payer")}>
+          <select {...register("payerId", { valueAsNumber: true })}>
             <option value="">Choose a payer</option>
-            <option value="Bob">Bob</option>
-            <option value="Alice">Alice</option>
+            <option value="1">Bob</option>
+            <option value="2">Alice</option>
           </select>
-          {errors.payer && <p role="alert">{errors.payer.message}</p>}
+          {errors.payerId && (
+            <p role="alert">Please select a payer</p>
+          )}
+        </label>
+
+        <br />
+
+        <label>
+          Participants:
+          <select
+            multiple
+            {...register("participants", {
+              setValueAs: (values) =>
+                Array.isArray(values) ? values.map(Number) : [],
+            })}
+          >
+            <option value="1">Bob</option>
+            <option value="2">Alice</option>
+          </select>
         </label>
 
         <br />
@@ -74,7 +92,9 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
 
         <select
           id="categoryId"
-          {...register("categoryId")}
+          {...register("categoryId", {
+            setValueAs: (value) => value === "" ? null : Number(value),
+          })}
           disabled={loadingCategories || categories.length === 0}
         >
           <option value="">Select a category</option>
@@ -86,7 +106,10 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
           ))}
         </select>
 
-        {errors.categoryId && <p role="alert">{errors.categoryId.message}</p>}
+        {errors.categoryId && (
+          <p role="alert">{errors.categoryId.message}</p>
+        )}
+
         <br />
 
         <label>

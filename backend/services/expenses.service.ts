@@ -1,5 +1,5 @@
 import { db } from "../src/prisma/db.ts";
-import type { Expense, ExpenseFilter, NewExpense } from "../types/expense.ts";
+import type { Expense, ExpenseFilter, NewExpense, NewExpenseInput } from "../types/expense.ts";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -41,31 +41,25 @@ export class ExpensesService {
     return expense;
   }
 
-  public static async addExpense(newExpense: NewExpense) {
-    const payer = await db.orm.public.User.first({
-      name: newExpense.payer,
-    });
+ public static async addExpense(newExpense: NewExpenseInput) {
+  const expense = await db.orm.public.Expense.create({
+    date: newExpense.date,
+    description: newExpense.description,
+    amount: newExpense.amount,
+    payerId: newExpense.payerId,
+    categoryId: newExpense.categoryId ?? null,
+  });
 
-    if (!payer) {
-      throw new Error(`Payer "${newExpense.payer}" not found`);
-    }
-    const category = await db.orm.public.Category.first({
-      id: Number(newExpense.categoryId),
+  for (const userId of newExpense.participants) {
+    await db.orm.public.Participations.create({
+      expenseId: expense.id,
+      userId,
     });
-
-    if (!category) {
-      throw new Error(`Category "${newExpense.categoryId}" not found`);
-    }
-
-    await db.orm.public.Expense.create({
-      date: newExpense.date,
-      description: newExpense.description ?? "",
-      amount: newExpense.amount,
-      payerId: payer.id,
-      categoryId: category.id,
-    });
-    return this.getExpenses();
   }
+
+  return this.getExpenseById(expense.id);
+}
+
   public static async resetExpenses() {
     const defaultExpenses: NewExpense[] = JSON.parse(
       fs.readFileSync(this.resetPath, "utf-8"),

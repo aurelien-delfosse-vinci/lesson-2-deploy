@@ -49,9 +49,20 @@ export type ExpenseFilter = z.infer<typeof expenseFilterSchema>;
 export const newExpenseSchema = z.object({
   date: z.string().min(1),
   description: z.string(),
-  payer: z.string().min(1),
   amount: z.number().finite().positive(),
-  categoryId: z.string().regex(/^\d+$/).transform(Number).pipe(
-    z.number().int().positive(),
-  ),
+  payerId: z.number().int().positive(),
+  participants: z.array(z.number().int().positive()),
+  categoryId: z.number().int().positive().optional().nullable(),
 });
+
+export type NewExpenseInput = z.infer<typeof newExpenseSchema>;
+
+export const parseNewExpense = (data: unknown): NewExpenseInput | false => {
+  const result = newExpenseSchema.safeParse(data);
+
+  if (!result.success) {
+    return false;
+  }
+
+  return result.data;
+};

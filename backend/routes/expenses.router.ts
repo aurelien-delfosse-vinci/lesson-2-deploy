@@ -52,7 +52,17 @@ expensesRouter.post("/", async (req, res) => {
       return res.status(400).json({ error: "Invalid expense" });
     }
 
-    const expenses = await ExpensesService.addExpense(expense);
+    const newExpense = {
+      date: expense.date,
+      description: expense.description,
+      amount: expense.amount,
+      payerId: Number(expense.payer),
+      participants: [],
+      categoryId: Number(expense.categoryId),
+    };
+
+    const expenses = await ExpensesService.addExpense(newExpense);
+
     return res.status(201).json(expenses);
   } catch (error) {
     console.error("ADD EXPENSE ERROR:", error);
