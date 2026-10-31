@@ -20,7 +20,7 @@ function ExpenseShow() {
       </p>
 
       <p>
-        <strong>Paid by:</strong> {expense.payer}
+        <strong>Paid by:</strong> {expense.payer.name}
       </p>
 
       <div>
