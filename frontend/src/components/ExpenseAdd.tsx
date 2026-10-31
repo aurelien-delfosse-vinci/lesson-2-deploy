@@ -8,8 +8,7 @@ import useCategories from "../hooks/useCategories";
 const expenseSchema = z.object({
   payerId: z.number().int().positive(),
 
-  participants: z.array(z.number().int().positive()),
-
+  participants: z.array(z.string()).transform((values) => values.map(Number)),
   date: z.string().min(1, "Date is required"),
 
   description: z.string().max(200, "Description cannot exceed 200 characters"),
@@ -22,7 +21,8 @@ const expenseSchema = z.object({
   categoryId: z.number().int().positive().nullable(),
 });
 
-type ExpenseFormData = z.infer<typeof expenseSchema>;
+type ExpenseFormInput = z.input<typeof expenseSchema>;
+type ExpenseFormData = z.output<typeof expenseSchema>;
 
 interface ExpenseAddProps {
   addExpense: (expense: NewExpenseInput) => Promise<void>;
@@ -30,19 +30,19 @@ interface ExpenseAddProps {
 
 function ExpenseAdd({ addExpense }: ExpenseAddProps) {
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ExpenseFormData>({
-    resolver: zodResolver(expenseSchema),
-    defaultValues: {
-      payerId: undefined,
-      participants: [],
-      date: "",
-      description: "",
-      categoryId: null,
-    },
-  });
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm<ExpenseFormInput, any, ExpenseFormData>({
+  resolver: zodResolver(expenseSchema),
+  defaultValues: {
+    payerId: undefined,
+    participants: [],
+    date: "",
+    description: "",
+    categoryId: null,
+  },
+});
 
   const { categories, loadingCategories } = useCategories();
 
@@ -57,7 +57,11 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
     <div>
       <h2>Add a new Expense</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form
+        onSubmit={handleSubmit(onSubmit, (errors) =>
+          console.log("Erreurs du formulaire :", errors),
+        )}
+      >
         <label>
           Payer:
           <select {...register("payerId", { valueAsNumber: true })}>
@@ -65,22 +69,14 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
             <option value="1">Bob</option>
             <option value="2">Alice</option>
           </select>
-          {errors.payerId && (
-            <p role="alert">Please select a payer</p>
-          )}
+          {errors.payerId && <p role="alert">Please select a payer</p>}
         </label>
 
         <br />
 
         <label>
           Participants:
-          <select
-            multiple
-            {...register("participants", {
-              setValueAs: (values) =>
-                Array.isArray(values) ? values.map(Number) : [],
-            })}
-          >
+          <select multiple {...register("participants")}>
             <option value="1">Bob</option>
             <option value="2">Alice</option>
           </select>
@@ -93,7 +89,7 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
         <select
           id="categoryId"
           {...register("categoryId", {
-            setValueAs: (value) => value === "" ? null : Number(value),
+            setValueAs: (value) => (value === "" ? null : Number(value)),
           })}
           disabled={loadingCategories || categories.length === 0}
         >
@@ -106,9 +102,7 @@ function ExpenseAdd({ addExpense }: ExpenseAddProps) {
           ))}
         </select>
 
-        {errors.categoryId && (
-          <p role="alert">{errors.categoryId.message}</p>
-        )}
+        {errors.categoryId && <p role="alert">{errors.categoryId.message}</p>}
 
         <br />
 
