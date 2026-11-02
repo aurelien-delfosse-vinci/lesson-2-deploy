@@ -1,19 +1,26 @@
-
 import { db } from "./src/prisma/db.ts";
+import bcrypt from "bcrypt";
+
+const DEMO_PASSWORD = "topsecret";
 
 async function main() {
   console.log("Starting database population...");
 
-  // 1. Create or retrieve users.
+  // 1. Hash the demo password.
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+
+  // 2. Create or retrieve users.
   const bob = await db.orm.public.User.upsert({
     create: {
       name: "Bob",
       email: "bob@example.com",
       bankAccount: "BE001234567890",
+      passwordHash,
     },
     update: {
       name: "Bob",
       bankAccount: "BE001234567890",
+      passwordHash,
     },
     conflictOn: {
       email: "bob@example.com",
@@ -25,10 +32,12 @@ async function main() {
       name: "Alice",
       email: "alice@example.com",
       bankAccount: "BE009876543210",
+      passwordHash,
     },
     update: {
       name: "Alice",
       bankAccount: "BE009876543210",
+      passwordHash,
     },
     conflictOn: {
       email: "alice@example.com",
@@ -37,12 +46,12 @@ async function main() {
 
   console.log("Users created or retrieved.");
 
-  // 2. Remove existing data in dependency order.
+  // 3. Remove existing data in dependency order.
   await db.orm.public.Participations.where({}).deleteAll();
   await db.orm.public.Transfer.where({}).deleteAll();
   await db.orm.public.Expense.where({}).deleteAll();
 
-  // 3. Create expenses.
+  // 4. Create expenses.
   const lunch = await db.orm.public.Expense.create({
     description: "Lunch",
     amount: 24.50,
@@ -66,7 +75,7 @@ async function main() {
 
   console.log("Expenses created.");
 
-  // 4. Link users to expenses through the join table.
+  // 5. Link users to expenses through the join table.
   await db.orm.public.Participations.createAll([
     { expenseId: lunch.id, userId: bob.id },
     { expenseId: lunch.id, userId: alice.id },
@@ -78,7 +87,7 @@ async function main() {
 
   console.log("Expense participants created.");
 
-  // 5. Create transfers between users.
+  // 6. Create transfers between users.
   await db.orm.public.Transfer.create({
     amount: 12.25,
     date: new Date().toISOString(),

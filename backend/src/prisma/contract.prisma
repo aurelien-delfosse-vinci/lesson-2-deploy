@@ -13,15 +13,16 @@ model Expense {
 }
 
 model User {
-  id          Int     @id @default(autoincrement())
-  name        String
-  email       String  @unique
-  bankAccount String? // optional
+  id           Int     @id @default(autoincrement())
+  name         String
+  email        String  @unique
+  bankAccount  String?
+  passwordHash String
 
-  transfersOut         Transfer[]    @relation("UserTransfersSource")
-  transfersIn          Transfer[]    @relation("UserTransfersTarget")
-  participatedExpenses Expense[] @relation("ParticipantExpenses")
-  paidExpenses Expense[]  @relation("PayerExpenses")
+  transfersOut          Transfer[] @relation("UserTransfersSource")
+  transfersIn           Transfer[] @relation("UserTransfersTarget")
+  participatedExpenses Expense[]  @relation("ParticipantExpenses")
+  paidExpenses          Expense[]  @relation("PayerExpenses")
 }
 
 model Participations {

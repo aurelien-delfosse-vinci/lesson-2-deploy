@@ -6,6 +6,8 @@ import cors from 'cors';
 import expensesRouter from './routes/expenses.router.ts';
 import usersRouter from "./routes/users.router.ts";
 import categoriesRouter from './routes/categories.router.ts';
+import authRouter from "./routes/auths.router.ts";
+import { yoga } from "./src/graphql/yoga.ts";
 
 const app = express();
 
@@ -28,15 +30,11 @@ app.get('/ping', (_req, res) => {
 app.use('/api/expenses', expensesRouter);
 app.use('/api/users', usersRouter);
 app.use("/api/categories", categoriesRouter);
+app.use("/api/auth", authRouter);
 
 const port = Number(process.env.PORT) || 3000;
 
-const yoga = createYoga({
-  schema,
-  graphqlEndpoint: "/graphql",
-  cors: false,
-  maskedErrors: process.env.NODE_ENV === "production",
-});
+app.use(yoga.graphqlEndpoint, yoga);
 
 app.use(yoga.graphqlEndpoint, yoga);
 

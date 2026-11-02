@@ -17,3 +17,13 @@ Content-Type: application/json
 
 ### Reset expenses
 POST {{expenses}}/reset
+
+
+###
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "bob@example.com",
+  "password": "topsecret"
+}
